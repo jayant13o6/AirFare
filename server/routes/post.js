@@ -7,6 +7,7 @@ import { getPosts } from '../controllers/posts.js';
 import Tickets from "../models/tickets.js";
 import Flights from "../models/flight.js";
 import Admin from "../models/admin.js";
+import { OAuth2Client } from "google-auth-library";
 
 var router = exp();
 var router = exp.Router();
@@ -60,7 +61,9 @@ router.post('/register', async (req,res) =>{
     catch(err) {console.log(err)}
 })
 
-
+router.post('/googleregister', async(req,res)=>{
+    console.log(req.body)
+})
 router.post('/login', async(req,res)=>{
     console.log(req.body)
     try{
