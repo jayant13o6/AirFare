@@ -7,8 +7,11 @@ import { getPosts } from '../controllers/posts.js';
 import Tickets from "../models/tickets.js";
 import Flights from "../models/flight.js";
 import Admin from "../models/admin.js";
+import bcrypt from 'bcryptjs';
 import { OAuth2Client } from "google-auth-library";
 
+
+const client1 = new OAuth2Client("630453011763-n2ecob2smr1j279kki66vf3ujdvovt55.apps.googleusercontent.com")
 var router = exp();
 var router = exp.Router();
 
@@ -24,12 +27,17 @@ router.get('/', (req,res)=> {
 router.post('/register', async (req,res) =>{
     console.log('data::',req.body);
     // res.send({"name": "jajammmmm", "email": "aajjmmmmm", "password": "knnnnn", "c_password": "pknnnn", "p_no": 8888888888});
-    
+    if (req.body.password !== req.body.c_password){
+        return res.status(400).json({ error: 'password not matched'})
+    }
     try{
         const userExsit = await User.findOne({email_id:req.body.email});
         if (userExsit){ 
             return res.status(422).json({error: 'email already exsit'});
             console.log('user already exsist')
+        }
+        if (req.body.password !== req.body.c_password){
+            return res.status(400).json({ error: 'password not matched'})
         }
         else{
     // res.json({message: req.body})
@@ -54,7 +62,7 @@ router.post('/register', async (req,res) =>{
     await user.save()
     .then((result)=>{
         console.log('result of register:',result)
-        res.send()
+        res.send('sing up success')
           })
     .catch((err)=>{console.log(err)})
 }}
@@ -62,13 +70,48 @@ router.post('/register', async (req,res) =>{
 })
 
 router.post('/googleregister', async(req,res)=>{
-    console.log(req.body)
+    // console.log(req.body)
+    const {tokenId} = req.body
+    client1.verifyIdToken({idToken: tokenId, audience:'630453011763-n2ecob2smr1j279kki66vf3ujdvovt55.apps.googleusercontent.com'})
+    .then(async(response)=>{
+        // console.log(response)
+        const {email_verified, name, email} = response.payload;
+        console.log('payload:', response.payload)
+        if (email_verified){
+            let user = await User.findOne({email_id:email})
+                // if (!user){return res.status(400).json({error:'something gone wrong'})}
+                {
+                    console.log('hello there')
+                    if(user){const token = await user.createToken();
+                        console.log('token is :' + token)
+                        res.cookie('cookie2' , token, {
+                            expires: new Date(Date.now() + 1000*60*60*24),     //expiry for a day
+                            httpOnly: true,
+                        }) 
+                        res.send('login?')}
+                    else{
+                        let password = 'aaa'
+                        let user = new User({name,email,password})
+                        user.save((err,data) => {
+                            if(err){console.log(err)}
+                        })
+                        res.send('signup?')
+                    }
+                }
+            
+        }else{console.log('mail not found')}
+    })
+    .catch((err)=>{console.log(err)})
 })
+
 router.post('/login', async(req,res)=>{
     console.log(req.body)
     try{
         const adminLogin = await User.findOne({email_id:req.body.email})
             if (adminLogin) {
+                const isMatch = await bcrypt.compare(req.body.password, adminLogin.password)
+                if (isMatch){res.status(400).json({message:'invalid credantials dude'})}
+                else{
                 console.log(adminLogin)
                 const token = await adminLogin.createToken();
                 console.log('token is :' + token)
@@ -79,7 +122,7 @@ router.post('/login', async(req,res)=>{
                 httpOnly: true
                     });
                 res.send('logred success')
-            }
+            }}
             // else{res.render('invalid ccredantials')}
             else{
                 // window.alert('invaltd credential')
@@ -126,6 +169,7 @@ router.post('/schedule_flight',auth, async(req,res)=>{
     console.log('flight details:',req.body)
     try{ const Flight = new Flights(req.body)
             Flight.save()
+            res.send('schedule addede!!!')
     }
     catch(err){console.log(err)}
 })

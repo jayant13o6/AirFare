@@ -2,14 +2,14 @@ import dotenv from 'dotenv';
 import express from 'express';             //for template
 // import bodyParser from 'body-parser';       // for making get/post req
 import mongoose from 'mongoose';            // for database
-// import cors from 'cors';                    // for req b/w pages
+import cors from 'cors';                    // for req b/w pages
 import postRoutes from './routes/post.js';
 
 const app = express();
 app.use(express.urlencoded({extended: true}));
 // app.use(bodyParser.json({extended:true}));
 // app.use(bodyParser.urlencoded({extended:true}));
-// app.use(cors());
+app.use(cors());
 app.use(express.json());
 
 dotenv.config({ path: './config.env'});
