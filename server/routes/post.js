@@ -104,7 +104,7 @@ router.post('/googleregister', async(req,res)=>{
     .catch((err)=>{console.log(err)})
 })
 
-router.post('/login', async(req,res)=>{
+router.post('/login', async (req,res)=>{
     console.log(req.body)
     try{
         const adminLogin = await User.findOne({email_id:req.body.email})
@@ -136,19 +136,25 @@ router.post('/login', async(req,res)=>{
 router.post('/book_ticket',auth, async (req,res)=>{
     // if (JsonWebTokenError){res.send('login required!!!!')}
     console.log('tickets data:', req.body)
-
-    try{ const Ticket = new Tickets({
+    const ticket = await Flights.findOne({source:req.body.source} && {destination:req.body.destination} && {flight_date:req.body.departure_date})
+    if (ticket)
+    {   console.log('ticket can be booked')
+        try{ const Ticket = new Tickets({
             source : req.body.source,
             destination : req.body.destination,
             departure_date : req.body.departure_date,
-            arrival_date : req.body.arrival_date,
+            // arrival_date : req.body.arrival_date,
             total_pass : req.body.total_pass,
-            email_id : req.body.email_id
+            email_id : req.body.email_id,
+            total_cost: (req.body.total_pass*ticket.ticketCost)
     })
          Ticket.save()
          res.send('tickets booked, safe travel')
     }
     catch(err){console.log(err)}
+}
+    else{ console.log('ticket cant be booked')
+        res.status(400).json({message:'ticket cant found'})}
 })
 
 router.get('/book_ticket', auth, async(req,res) => {
@@ -215,8 +221,8 @@ router.post('/new_admin', async(req,res) =>{
     try{
         const userExsit = await Admin.findOne({admin_id:req.body.adminId});
         if (userExsit){ 
-            return res.status(422).json({error: 'email already exsit'});
             console.log('user already exsist')
+            return res.status(422).json({error: 'email already exsit'});
         }
         else{
             const admin = new Admin({

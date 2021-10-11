@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import moment from 'moment';
 
 const schedule = mongoose.Schema({
 
@@ -12,5 +13,6 @@ const schedule = mongoose.Schema({
     ticketCost: {type: Number, required: true}
 }, {timestamps: true},);
 
+// const flight_date = moment(flight_date).format('DD-MM-YYYY'); //04-05-2017
 const Flights = mongoose.model('Flights', schedule);
 export default Flights;
