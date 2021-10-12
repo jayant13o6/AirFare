@@ -30,6 +30,7 @@ router.post('/register', async (req,res) =>{
     if (req.body.password !== req.body.c_password){
         return res.status(400).json({ error: 'password not matched'})
     }
+    // if(req.body.email){return res.status(400).json({ error: 'password not matched'})}
     try{
         const userExsit = await User.findOne({email_id:req.body.email});
         if (userExsit){ 
