@@ -111,7 +111,10 @@ router.post('/login', async (req,res)=>{
         const adminLogin = await User.findOne({email_id:req.body.email})
             if (adminLogin) {
                 const isMatch = await bcrypt.compare(req.body.password, adminLogin.password)
-                if (isMatch){res.status(400).json({message:'invalid credantials dude'})}
+                if (!isMatch){
+                    // console.log(bcrypt('savve:',adminLogin.password))
+                   return res.status(400).json({message:'invalid credantials dude'})
+                }
                 else{
                 console.log(adminLogin)
                 const token = await adminLogin.createToken();
@@ -257,6 +260,13 @@ router.post('/admin', async(req,res)=>{
     try{
         const adminLogin = await Admin.findOne({admin_id: req.body.adminId})
             if (adminLogin) {
+
+                const isMatch = await bcrypt.compare(req.body.password, adminLogin.password)
+                if (!isMatch){
+                    // console.log(bcrypt('savve:',adminLogin.password))
+                   return res.status(400).json({message:'invalid credantials dude'})
+                }
+                else{
                 console.log('admin found:',adminLogin)
                 const token = await adminLogin.createToken();
                 console.log('token is :' + token)
@@ -267,11 +277,11 @@ router.post('/admin', async(req,res)=>{
                 httpOnly: true
                     });
                 res.send()
-            }
+            }}
             // else{res.render('invalid ccredantials')}
             else{
                 console.log('invaltd credential')
-                res.status(400).json({message:'invalid credantials'})
+                return res.status(400).json({message:'invalid credantials'})
         }
     }
     catch(err){console.log(err)}
