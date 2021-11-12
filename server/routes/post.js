@@ -309,4 +309,14 @@ router.get('/indvAdmin', auth, async(req,res)=>{
     res.send(req.userCheck);
 })
 
+router.delete('/schedule_flight/:id', async(req,res)=>{
+    console.log('delete:', req.body,req.params)
+    Flights.findByIdAndDelete(req.params.id)
+    .then((result)=>{
+        res.json('delete method used')
+        console.log('deleted')
+    })
+    .catch((err)=>{console.log(err)})    
+    // res.redirect('/admin')
+})
 export default router;

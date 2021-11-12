@@ -55,3 +55,5 @@ app.get('/adminlogout', postRoutes);
 app.get('/history', postRoutes);
 
 app.post('/googleregister',postRoutes);
+
+app.delete('/schedule_flight/:id', postRoutes);
