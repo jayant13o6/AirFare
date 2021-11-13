@@ -319,4 +319,15 @@ router.delete('/schedule_flight/:id', async(req,res)=>{
     .catch((err)=>{console.log(err)})    
     // res.redirect('/admin')
 })
+
+router.post('/searchDestination', async(req,res)=>{
+    console.log(req.body,req.body.search)
+    Flights.find({destination : req.body.search})
+    .then((result)=>{
+        console.log(result)
+        res.send("flight data found")
+        res.json(result)
+    })
+    .catch((err)=>{console.log(err)})
+})
 export default router;
