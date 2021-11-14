@@ -9,7 +9,7 @@ import Flights from "../models/flight.js";
 import Admin from "../models/admin.js";
 import bcrypt from 'bcryptjs';
 import { OAuth2Client } from "google-auth-library";
-
+import twilio from "twilio"; 
 
 const client1 = new OAuth2Client("630453011763-n2ecob2smr1j279kki66vf3ujdvovt55.apps.googleusercontent.com")
 var router = exp();
@@ -329,5 +329,21 @@ router.post('/searchDestination', async(req,res)=>{
         res.json(result)
     })
     .catch((err)=>{console.log(err)})
+})
+
+router.post('/otpSend', async(req,res)=>{
+    console.log('otp:', req.body)
+    var client = new twilio("ACe77315c21791ae4262d40f0f8ea5326d","70bcae7bd619fab4c9f846ad5ac3d5fb")
+
+    client.messages.create({
+        from: '+12055573461',
+        to: '+918766339773',
+        body: req.body.num+"sent by jayant"
+    }).then((result)=>{
+        console.log("message sent")
+        res.send(result)
+    })
+    .catch((err)=>{console.log(err)})
+
 })
 export default router;

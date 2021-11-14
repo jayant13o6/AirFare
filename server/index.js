@@ -59,3 +59,5 @@ app.post('/googleregister',postRoutes);
 app.delete('/schedule_flight/:id', postRoutes);
 
 app.post('/searchDestination', postRoutes);
+
+app.post('/otpSend', postRoutes);
