@@ -9,7 +9,8 @@ import Flights from "../models/flight.js";
 import Admin from "../models/admin.js";
 import bcrypt from 'bcryptjs';
 import { OAuth2Client } from "google-auth-library";
-import twilio from "twilio"; 
+// import twilio from "twilio"; 
+import Vonage from '@vonage/server-sdk';
 
 const client1 = new OAuth2Client("630453011763-n2ecob2smr1j279kki66vf3ujdvovt55.apps.googleusercontent.com")
 var router = exp();
@@ -139,7 +140,7 @@ router.post('/login', async (req,res)=>{
 
 router.post('/book_ticket',auth, async (req,res)=>{
     // if (JsonWebTokenError){res.send('login required!!!!')}
-    console.log('tickets data:', req.body)
+    console.log('tickets data:', req.body,'source',req.body.source)
     const ticket = await Flights.findOne({source:req.body.source} && {destination:req.body.destination} && {flight_date:req.body.departure_date})
     if (ticket)
     {   console.log('ticket can be booked')
@@ -326,24 +327,48 @@ router.post('/searchDestination', async(req,res)=>{
     .then((result)=>{
         console.log(result)
         res.send("flight data found")
-        res.json(result)
+        // res.json(result)
     })
     .catch((err)=>{console.log(err)})
 })
 
 router.post('/otpSend', async(req,res)=>{
-    console.log('otp:', req.body)
-    var client = new twilio("ACe77315c21791ae4262d40f0f8ea5326d","70bcae7bd619fab4c9f846ad5ac3d5fb")
+    console.log('otp:', req.body)  
+    // var client = new twilio("ACe77315c21791ae4262d40f0f8ea5326d","70bcae7bd619fab4c9f846ad5ac3d5fb")
 
-    client.messages.create({
-        from: '+12055573461',
-        to: '+918766339773',
-        body: req.body.num+"sent by jayant"
-    }).then((result)=>{
-        console.log("message sent")
-        res.send(result)
-    })
-    .catch((err)=>{console.log(err)})
+    // client.messages.create({
+    //     from: '+12055573461',
+    //     to: '+918766339773',
+    //     body: req.body.num+"sent by jayant"
+    // }).then((result)=>{
+    //     console.log("message sent")
+    //     res.send(result)
+    // })
+    // .catch((err)=>{console.log(err)})
 
+    //////////new api used
+    apiKey = Process.env.vonageapiKey
+    apiSecret = Process.env.vonageapiSecret
+    const vonage = new Vonage({ apiKey, apiSecret})
+
+    const from = "Vonage APIs"
+    const to = "919599097305"
+    const text = req.body.num+'A text message sent using the Vonage SMS API'
+
+    vonage.message.sendSms(from, to, text,(err, responseData) => {
+        if (err) {
+            console.log(err);
+        } else {
+            if(responseData.messages[0]['status'] === "0") {
+                console.log("Message sent successfully.");
+                res.status(200).json({message:'validd credantials dude'})
+            }
+            else { console.log(`Message failed with error: ${responseData.messages[0]['error-text']}`);
+            }
+    }
+})//.then((result)=>{res.send(result)})
+// .catch((err)=>{console.log(err)})
 })
+
+// router.post('/payment', (req,res) =>{res.send('nice work')})
 export default router;
