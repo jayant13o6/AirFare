@@ -5,12 +5,19 @@ import mongoose from 'mongoose';            // for database
 import cors from 'cors';                    // for req b/w pages
 import postRoutes from './routes/post.js';
 
+
 const app = express();
 app.use(express.urlencoded({extended: true}));
 // app.use(bodyParser.json({extended:true}));
 // app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
 app.use(express.json());
+
+// sockets define:
+import http from 'http';
+const server = http.createServer(app);
+import {Server} from "socket.io";
+const io = new Server(server);
 
 dotenv.config({ path: './config.env'});
 const connectURL = process.env.DATABASE;
@@ -20,9 +27,19 @@ mongoose.connect(connectURL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-.then(() => app.listen(Port, ()=>{console.log('we start express and Mongodb connected')}))  //listen for request
+.then(() => server.listen(Port, ()=>{
+  console.log('we start express and Mongodb connected')
+}))  //listen for request
 .catch(err => console.log(err));
-
+// io.listen(server);
+console.log('sockets')
+io.on('connection', (socket) => { 
+  socket.on('messages',(data)=>{
+    console.log('a user connected','data:',data);
+    io.emit('received')
+  }); 
+  // socket.on('disconnect', ()=>{console.log('disconneected!!')})
+});
 
 app.get('/',postRoutes);
 
@@ -64,4 +81,6 @@ app.post('/otpSend', postRoutes);
 
 app.post('/payment', postRoutes);
 
-app.get('/payment', postRoutes)
+app.get('/payment', postRoutes);
+
+app.post('/bookticket/:id', postRoutes);

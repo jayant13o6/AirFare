@@ -11,11 +11,13 @@ import bcrypt from 'bcryptjs';
 import { OAuth2Client } from "google-auth-library";
 // import twilio from "twilio"; 
 import Vonage from '@vonage/server-sdk';
+import dotenv from 'dotenv';
+import auth2 from "../middleware/auth.js";
 
 const client1 = new OAuth2Client("630453011763-n2ecob2smr1j279kki66vf3ujdvovt55.apps.googleusercontent.com")
 var router = exp();
 var router = exp.Router();
-
+dotenv.config({ path: '../config.env'});
 router.use(cookieParser());
 
 // router.get('/', getPosts);
@@ -90,15 +92,24 @@ router.post('/googleregister', async(req,res)=>{
                             expires: new Date(Date.now() + 1000*60*60*24),     //expiry for a day
                             httpOnly: true,
                         }) 
-                        res.send('login?')}
+                        // res.send('login?')
+                        res.status(200).json({message:'login?'})
+                    }
                     else{
                         let password = 'aaa'
-                        let user = new User({name,email,password})
+                        let user = new User({
+                            Username: name,
+                            email_id: email,
+                            password: password,
+                            confirm_password: password,
+                            phone_no: '000'
+                            // name,email,password
+                        })
                         user.save((err,data) => {
                             if(err){console.log(err)}
                         })
-                        res.send('signup?')
-                    }
+                        return res.status(200).json({message:'signup?'})
+                     }
                 }
             
         }else{console.log('mail not found')}
@@ -129,10 +140,7 @@ router.post('/login', async (req,res)=>{
                 res.send('logred success')
             }}
             // else{res.render('invalid ccredantials')}
-            else{
-                // window.alert('invaltd credential')
-                res.status(400).json({message:'invalid credantials'})
-        }
+            else{    res.status(400).json({message:'invalid credantials'})    }
     }
     catch(err){console.log(err)}
 })
@@ -176,10 +184,11 @@ router.get('/history', auth, async(req,res) =>{
         .catch((err)=>{console.log(err)})
 })
 
-router.post('/schedule_flight',auth, async(req,res)=>{
+router.post('/schedule_flight', async(req,res)=>{
     console.log('flight details:',req.body)
     try{ const Flight = new Flights(req.body)
-            Flight.save()
+            await Flight.save()
+            console.log('flight added')
             res.send('schedule addede!!!')
     }
     catch(err){console.log(err)}
@@ -204,7 +213,7 @@ router.get('/logout', auth,async(req,res)=>{
 })
 
 
-router.get('/adminlogout', auth,async(req,res)=>{
+router.get('/adminlogout', auth2,async(req,res)=>{
     try {
         console.log('tokens to clear:',req.adminCheck.tokens)
         req.adminCheck.tokens=[];
@@ -305,7 +314,7 @@ router.get('/schedule_flight', async(req,res)=>{
 })
 
 
-router.get('/indvAdmin', auth, async(req,res)=>{
+router.get('/indvAdmin', auth2, async(req,res)=>{
     console.log('user logged in his personl acc')
     res.send(req.userCheck);
 })
@@ -322,8 +331,8 @@ router.delete('/schedule_flight/:id', async(req,res)=>{
 })
 
 router.post('/searchDestination', async(req,res)=>{
-    console.log(req.body,req.body.search)
-    Flights.find({destination : req.body.search})
+    console.log('search destiantion:',req.body,req.body.search)
+    Flights.find( {destination : req.body.search})
     .then((result)=>{
         console.log(result)
         res.send("flight data found")
@@ -347,9 +356,9 @@ router.post('/otpSend', async(req,res)=>{
     // .catch((err)=>{console.log(err)})
 
     //////////new api used
-    apiKey = Process.env.vonageapiKey
-    apiSecret = Process.env.vonageapiSecret
-    const vonage = new Vonage({ apiKey, apiSecret})
+    var apiKey = process.env.vonageapiKey
+    var apiSecret = process.env.vonageapiSecret
+    const vonage = new Vonage("5c30f775","1vpXxKo9k4qvcooR")
 
     const from = "Vonage APIs"
     const to = "919599097305"
@@ -370,5 +379,15 @@ router.post('/otpSend', async(req,res)=>{
 // .catch((err)=>{console.log(err)})
 })
 
-// router.post('/payment', (req,res) =>{res.send('nice work')})
+
+router.post('/bookticket/:id', async(req,res)=>{
+    console.log('delete:', req.body,req.params)
+    Flights.findById(req.params.id)
+    .then((result)=>{
+        res.send(result)
+        console.log('deleted')
+    })
+    .catch((err)=>{console.log(err)})    
+    // res.redirect('/admin')
+})
 export default router;
